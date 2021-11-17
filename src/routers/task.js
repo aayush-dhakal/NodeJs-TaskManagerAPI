@@ -17,12 +17,48 @@ router.post("/tasks", auth, async (req, res) => {
   }
 });
 
+// GET /tasks   -> fetches all the completed(ie completed:true) and non completed tasks(ie completed:false)
+// GET /tasks?completed=true  -> fetches only the completed tasks(ie completed:true)
+// GET /tasks?completed=false  -> fetches only the non completed tasks(ie completed:false)
+// GET /tasks?limit=10&skip=10
+// GET /tasks?sortBy=createdAt:desc  // here : is just a special character, you can use any like _
 router.get("/tasks", auth, async (req, res) => {
+  const match = {};
+  const sort = {};
+
+  if (req.query.completed) {
+    match.completed = req.query.completed === "true";
+  }
+
+  if (req.query.sortBy) {
+    const parts = req.query.sortBy.split(":");
+
+    // console.log(parts, parts[0]);
+    sort[parts[0]] = parts[1] === "desc" ? -1 : 1; // this sets like: sort.createdAt=-1(if desc) or 1(if asc, here we can pass any text for ascending or even if we don't pass any query for sorting it will give result in ascending order by default)
+
+    // // better approach is this if you must pass a query parameter for sorting
+    // if (parts[1] === "desc") {
+    //   sort[parts[0]] = -1;
+    // } else if (parts[1] === "asc") {
+    //   sort[parts[0]] = -1;
+    // }
+  }
+
   try {
     // const tasks = await Task.find({ owner: req.user._id });
     // res.send(tasks);
     // or
-    await req.user.populate("tasks").execPopulate();
+    await req.user
+      .populate({
+        path: "tasks",
+        match,
+        options: {
+          limit: parseInt(req.query.limit),
+          skip: parseInt(req.query.skip),
+          sort,
+        },
+      })
+      .execPopulate();
     res.send(req.user.tasks);
   } catch (e) {
     res.status(500).send();

@@ -2,62 +2,67 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const Task = require('./task')
+const Task = require("./task");
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
 
-    // mongoose built-in validation
-    required: true,
-    trim: true,
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-    trim: true,
-
-    // third party validation using validator package
-    validate(value) {
-      if (!validator.isEmail(value)) {
-        throw new Error("email is invalid");
-      }
+      // mongoose built-in validation
+      required: true,
+      trim: true,
     },
-  },
-  age: {
-    type: Number,
-    default: 0,
+    email: {
+      type: String,
+      unique: true,
+      required: true,
+      trim: true,
 
-    // custom validation
-    validate(value) {
-      if (value < 0) {
-        throw new Error("age must be a positive number");
-      }
-    },
-  },
-
-  password: {
-    type: String,
-    required: true,
-    minlength: 7,
-    trim: true,
-    validate(value) {
-      if (value.toLowerCase().includes("password")) {
-        throw new Error('password cannot contain the word "password"');
-      }
-    },
-  },
-
-  tokens: [
-    {
-      token: {
-        type: String,
-        required: true,
+      // third party validation using validator package
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("email is invalid");
+        }
       },
     },
-  ],
-});
+    age: {
+      type: Number,
+      default: 0,
+
+      // custom validation
+      validate(value) {
+        if (value < 0) {
+          throw new Error("age must be a positive number");
+        }
+      },
+    },
+
+    password: {
+      type: String,
+      required: true,
+      minlength: 7,
+      trim: true,
+      validate(value) {
+        if (value.toLowerCase().includes("password")) {
+          throw new Error('password cannot contain the word "password"');
+        }
+      },
+    },
+
+    tokens: [
+      {
+        token: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
 // this is basically to fetch the tasks created by a particular user
 // this is not actually stored in db but is here to rather just tell mongo about the link of user and task. note we use tasks(which is what stored as in mongodb because you can give any name here). model file name is task(lowecase singular), model name is Task(uppercase singular) and the collection name in db is tasks(lowercase pulular)
 // watch video 13 of part 12 super important
